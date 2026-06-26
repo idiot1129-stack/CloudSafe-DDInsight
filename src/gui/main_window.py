@@ -143,6 +143,7 @@ class MainWindow(QMainWindow):
 
         try:
             parser = AutoSupportParser(input_path)
+            records = parser.parse_capacity_records()
             files = parser.find_files()
 
             self.progress.setValue(60)
@@ -168,10 +169,19 @@ class MainWindow(QMainWindow):
             self.progress.setValue(100)
             self.status.setText(f"Status: Scan completed. Found {len(files)} files.")
 
+            print("Parsed capacity records:")
+            for r in records:
+                print(r)
+
+            self.progress.setValue(100)
+            self.status.setText(
+                f"Status: Scan completed. Found {len(files)} files. Parsed {len(records)} records."
+            )
+
             QMessageBox.information(
                 self,
                 "Scan Completed",
-                f"Found {len(files)} candidate files.\n\nCheck VS Code Terminal for file list.",
+                f"Found {len(files)} candidate files.\nParsed {len(records)} capacity records.",
             )
 
         except Exception as e:
