@@ -1,10 +1,12 @@
 from pathlib import Path
+
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QLineEdit, QPushButton,
     QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QCheckBox, QProgressBar, QMessageBox, QGroupBox
+    QCheckBox, QProgressBar, QMessageBox, QGroupBox,
 )
-from PySide6.QtCore import Qt
+
+from src.parser.autosupport_parser import AutoSupportParser
 
 
 APP_NAME = "CloudSafe DD Insight Professional"
@@ -120,25 +122,59 @@ class MainWindow(QMainWindow):
             self,
             "Select Output Excel",
             self.output_path.text(),
-            "Excel Files (*.xlsx)"
+            "Excel Files (*.xlsx)",
         )
         if path:
             self.output_path.setText(path)
 
     def generate_report(self):
-        if not self.input_path.text().strip():
-            QMessageBox.warning(self, "Missing Input", "Please select AutoSupport folder / ZIP / file.")
+        input_path = self.input_path.text().strip()
+
+        if not input_path:
+            QMessageBox.warning(
+                self,
+                "Missing Input",
+                "Please select AutoSupport folder / ZIP / file.",
+            )
             return
 
         self.progress.setValue(10)
-        self.status.setText("Status: Report generation started...")
+        self.status.setText("Status: Scanning AutoSupport files...")
 
-        # M1 先做 GUI 測試，下一步才接 Parser / Report Engine
-        self.progress.setValue(100)
-        self.status.setText("Status: GUI test completed.")
+        try:
+            parser = AutoSupportParser(input_path)
+            files = parser.find_files()
 
-        QMessageBox.information(
-            self,
-            "CloudSafe DD Insight",
-            "GUI is working.\nNext step: connect AutoSupport Parser and Excel Report Engine."
-        )
+            self.progress.setValue(60)
+            self.status.setText(f"Status: Found {len(files)} candidate files.")
+
+            if not files:
+                QMessageBox.warning(
+                    self,
+                    "No Files Found",
+                    "No supported AutoSupport files were found.\n\nSupported: .xml, .txt, .log, .json",
+                )
+                self.progress.setValue(0)
+                self.status.setText("Status: No files found.")
+                return
+
+            print("Found AutoSupport candidate files:")
+            for f in files[:20]:
+                print(f)
+
+            if len(files) > 20:
+                print(f"... and {len(files) - 20} more files")
+
+            self.progress.setValue(100)
+            self.status.setText(f"Status: Scan completed. Found {len(files)} files.")
+
+            QMessageBox.information(
+                self,
+                "Scan Completed",
+                f"Found {len(files)} candidate files.\n\nCheck VS Code Terminal for file list.",
+            )
+
+        except Exception as e:
+            self.progress.setValue(0)
+            self.status.setText("Status: Error")
+            QMessageBox.critical(self, "Error", str(e))
