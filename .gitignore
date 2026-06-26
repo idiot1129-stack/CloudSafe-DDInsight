@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+venv/
+
+# VS Code
+.vscode/
+
+# Build
+build/
+dist/
+
+# Output
+output/*.xlsx
+output/*.pdf
+output/*.png
+
+# Windows
+Thumbs.db
+Desktop.ini
