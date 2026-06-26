@@ -8,6 +8,8 @@ from PySide6.QtWidgets import (
 
 from src.parser.autosupport_parser import AutoSupportParser
 
+from src.report.excel_report import ExcelReport
+
 
 APP_NAME = "CloudSafe DD Insight Professional"
 APP_VERSION = "2.1"
@@ -144,6 +146,12 @@ class MainWindow(QMainWindow):
         try:
             parser = AutoSupportParser(input_path)
             records = parser.parse_capacity_records()
+            report = ExcelReport()
+
+            report.create_summary(
+            records,
+            self.output_path.text()
+            )  
             files = parser.find_files()
 
             self.progress.setValue(60)
@@ -180,8 +188,17 @@ class MainWindow(QMainWindow):
 
             QMessageBox.information(
                 self,
-                "Scan Completed",
-                f"Found {len(files)} candidate files.\nParsed {len(records)} capacity records.",
+                "Completed",
+                f"""Excel created successfully
+
+            Files Found : {len(files)}
+
+            Records : {len(records)}
+
+            Output
+
+            {self.output_path.text()}
+            """,
             )
 
         except Exception as e:
